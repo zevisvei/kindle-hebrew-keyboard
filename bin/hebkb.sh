@@ -17,8 +17,9 @@ LOG=/mnt/us/extensions/hebrew-keyboard/hebkb.log
 
 stamp() { echo "$(date '+%Y-%m-%d %H:%M:%S') $*" >> "$LOG"; }
 restart_kb() { restart kb >/dev/null 2>&1 || { stop kb >/dev/null 2>&1; start kb >/dev/null 2>&1; }; }
-set_lang() {   # $1 = lang id -> force conf current/selected + framework pref
-    sed -i "s/\"current\": *\"[^\"]*\"/\"current\": \"$1\"/;  s/\"selected\": *\"[^\"]*\"/\"selected\": \"$1\"/" "$CONF" 2>/dev/null
+set_lang() {   # $1 = ACTIVE lang id. selected = BOTH keyboards (he:en_US) so the
+               # on-screen globe key can switch he<->en; current = the active one.
+    sed -i "s/\"current\": *\"[^\"]*\"/\"current\": \"$1\"/;  s/\"selected\": *\"[^\"]*\"/\"selected\": \"he:en_US\"/" "$CONF" 2>/dev/null
     sed -i "s/^keyboard=.*/keyboard=$1/" "$PREF" 2>/dev/null
 }
 current_lang() { sed -n 's/.*"current": *"\([^"]*\)".*/\1/p' "$CONF" 2>/dev/null; }

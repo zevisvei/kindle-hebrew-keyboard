@@ -1,0 +1,9 @@
+# Scripts run on the Kindle (Linux) — must stay LF, never CRLF.
+*.sh    text eol=lf
+*.awk   text eol=lf
+*.conf  text eol=lf
+README.txt text eol=lf
+VERSION text eol=lf
+# Keymap archives are binary.
+*.gz    binary
+*.png   binary

@@ -15,6 +15,7 @@
 
 SELF=$(readlink -f "$0"); BIN=$(dirname "$SELF"); EXT=$(dirname "$BIN")
 DATA="$EXT/data"
+AWK="$DATA/make_he.awk"
 SRC=/usr/share/keyboard
 DST=/var/local/kbroot
 CONF=/var/local/system/keyboard.conf
@@ -27,11 +28,6 @@ say()   { eips 1 "$1" "  $2"; }
 eips -c
 say 8 "Installing Hebrew keyboard..."
 
-# 0. sanity: bundled keymaps present
-if ! ls "$DATA"/he-*.keymap.gz >/dev/null 2>&1; then
-    say 10 "ERROR: no data/he-*.keymap.gz bundled"; stamp "FAIL: no bundled keymap"; exit 1
-fi
-
 # 1. rootfs rw (for the /etc job)
 mount -o remount,rw / 2>/dev/null
 
@@ -41,38 +37,65 @@ if [ ! -d "$DST" ]; then
     stamp "copied $SRC -> $DST"
 fi
 
-# 3. build he/ : predictor libs from en_US + bundled keymaps (typing-only, no kdb/ldb)
+# 3. build he/ : predictor libs from en_US + Hebrew keymaps (typing-only, no kdb/ldb)
 mkdir -p "$DST/he"
 cp -a "$DST"/en_US/libpredictor.so* "$DST/he/" 2>/dev/null
 cp -a "$DST"/en_US/utils.so*        "$DST/he/" 2>/dev/null
 cp -a "$DST"/en_US/pkgconfig        "$DST/he/" 2>/dev/null
-# copy only the he keymaps whose resolution matches THIS device's en_US keymaps
-copied=0
-for f in "$DST"/en_US/en_US-*.keymap.gz; do
-    [ -f "$f" ] || continue
-    r=$(echo "$f" | sed 's/.*en_US-\(.*\)\.keymap\.gz/\1/')
-    if [ -f "$DATA/he-$r.keymap.gz" ]; then
-        cp -f "$DATA/he-$r.keymap.gz" "$DST/he/he-$r.keymap.gz"; copied=1
-        stamp "keymap he-$r matched device"
+
+# 3a. PREFERRED (universal): generate the Hebrew keymap on-device from THIS
+#     device's OWN en_US keymap(s) -- correct geometry for ANY screen res.
+made=0
+if [ -f "$AWK" ] && command -v awk >/dev/null 2>&1; then
+    for f in "$DST"/en_US/en_US-*.keymap.gz; do
+        [ -f "$f" ] || continue
+        r=$(echo "$f" | sed 's/.*en_US-\(.*\)\.keymap\.gz/\1/')
+        if gunzip -c "$f" > "/tmp/en_US-$r.keymap" 2>/dev/null \
+           && awk -f "$AWK" "/tmp/en_US-$r.keymap" "/tmp/en_US-$r.keymap" > "/tmp/he-$r.keymap" 2>/dev/null \
+           && [ -s "/tmp/he-$r.keymap" ]; then
+            gzip -c "/tmp/he-$r.keymap" > "$DST/he/he-$r.keymap.gz" && made=1
+            stamp "generated he-$r from device en_US"
+        fi
+        rm -f "/tmp/en_US-$r.keymap" "/tmp/he-$r.keymap"
+    done
+fi
+
+# 3b. FALLBACK: bundled keymaps matching the device's en_US resolution(s).
+if [ "$made" = 0 ]; then
+    stamp "on-device gen unavailable; trying bundled keymaps"
+    for f in "$DST"/en_US/en_US-*.keymap.gz; do
+        [ -f "$f" ] || continue
+        r=$(echo "$f" | sed 's/.*en_US-\(.*\)\.keymap\.gz/\1/')
+        if [ -f "$DATA/he-$r.keymap.gz" ]; then
+            cp -f "$DATA/he-$r.keymap.gz" "$DST/he/he-$r.keymap.gz"; made=1
+            stamp "bundled he-$r matched device"
+        fi
+    done
+fi
+
+# 3c. LAST RESORT: copy every bundled keymap (unknown-res device).
+if [ "$made" = 0 ]; then
+    if ls "$DATA"/he-*.keymap.gz >/dev/null 2>&1; then
+        say 10 "WARN: no res match; copying all keymaps"
+        cp -f "$DATA"/he-*.keymap.gz "$DST/he/"
+        stamp "WARN: copied all bundled keymaps (no res match)"
+    else
+        say 10 "ERROR: cannot build any he keymap"; stamp "FAIL: no keymap source"; exit 1
     fi
-done
-if [ "$copied" = 0 ]; then
-    say 10 "WARN: no keymap matches this screen res"
-    stamp "WARN: no res match; copying all bundled keymaps"
-    cp -f "$DATA"/he-*.keymap.gz "$DST/he/"
 fi
 stamp "built $DST/he"
 
-# 4. remove stock Arabic from the overlay (cosmetic: he shows as "Arabic", avoid dupes)
+# 4. remove stock Arabic from the overlay (cosmetic: avoids a duplicate entry)
 rm -rf "$DST/ar"
 
 # 5. install boot job
 cp -f "$DATA/hebkb.conf" /etc/upstart/hebkb.conf 2>/dev/null && stamp "installed /etc/upstart/hebkb.conf" \
     || stamp "WARN: could not write /etc/upstart (rootfs RO?)"
 
-# 6. mount now + enable Hebrew
+# 6. mount now + enable Hebrew. selected = he:en_US so the on-screen globe key
+#    switches he<->en; current = he (Hebrew active on open).
 [ -d "$SRC/he" ] || mount --bind "$DST" "$SRC"
-sed -i 's/"current": *"[^"]*"/"current": "he"/; s/"selected": *"[^"]*"/"selected": "he"/' "$CONF" 2>/dev/null
+sed -i 's/"current": *"[^"]*"/"current": "he"/; s/"selected": *"[^"]*"/"selected": "he:en_US"/' "$CONF" 2>/dev/null
 if grep -q '^keyboard=' "$PREF" 2>/dev/null; then
     sed -i 's/^keyboard=.*/keyboard=he/' "$PREF"
 else

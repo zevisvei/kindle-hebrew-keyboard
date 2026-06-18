@@ -4,13 +4,17 @@ Hebrew Keyboard for the native Kindle UI  (typing-only, SI-1452 layout)
 Adds a Hebrew keyboard to the STOCK Kindle interface (search, notes, etc.).
 No KOReader. Built and tested on Kindle Basic 10g (J9G29R), FW 5.18.1, AdBreak.
 
+WARNING: v10 universal on-device generation is NOT fully tested (experimental).
+NO WARRANTY. Use entirely at your own risk. The author takes NO responsibility
+for any damage, data loss, or malfunction of your device.
+
 REQUIREMENTS
 ------------
 - Jailbroken Kindle with KUAL installed.
-- A keyboard resolution matching a bundled keymap: 600x800 / 800x600
-  (Basic 10g class) or 1072x1448 / 1448x1072 (Paperwhite 11th gen).
-  Install auto-picks the keymap matching the device. Other resolutions
-  are NOT covered by the bundled keymaps.
+- ANY screen resolution. The installer builds the Hebrew keymap on the
+  device from the device's own en_US keymap (busybox awk, no Python/Lua),
+  so it inherits this screen's exact geometry. Pre-built keymaps
+  (600x800 / 800x600 / 1072x1448 / 1448x1072) ship only as a fallback.
 
 INSTALL (no SSH needed)
 -----------------------
