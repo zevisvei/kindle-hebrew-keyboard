@@ -7,9 +7,10 @@ No KOReader. Built and tested on Kindle Basic 10g (J9G29R), FW 5.18.1, AdBreak.
 REQUIREMENTS
 ------------
 - Jailbroken Kindle with KUAL installed.
-- 600x800 / 800x600 keyboard (most basic Kindles / Paperwhite-class).
-  Higher-res devices that use a different keymap resolution are NOT covered
-  by the bundled keymaps.
+- A keyboard resolution matching a bundled keymap: 600x800 / 800x600
+  (Basic 10g class) or 1072x1448 / 1448x1072 (Paperwhite 11th gen).
+  Install auto-picks the keymap matching the device. Other resolutions
+  are NOT covered by the bundled keymaps.
 
 INSTALL (no SSH needed)
 -----------------------

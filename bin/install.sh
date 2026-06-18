@@ -28,8 +28,8 @@ eips -c
 say 8 "Installing Hebrew keyboard..."
 
 # 0. sanity: bundled keymaps present
-if [ ! -f "$DATA/he-600x800.keymap.gz" ]; then
-    say 10 "ERROR: data/he-600x800.keymap.gz missing"; stamp "FAIL: no bundled keymap"; exit 1
+if ! ls "$DATA"/he-*.keymap.gz >/dev/null 2>&1; then
+    say 10 "ERROR: no data/he-*.keymap.gz bundled"; stamp "FAIL: no bundled keymap"; exit 1
 fi
 
 # 1. rootfs rw (for the /etc job)
@@ -46,8 +46,21 @@ mkdir -p "$DST/he"
 cp -a "$DST"/en_US/libpredictor.so* "$DST/he/" 2>/dev/null
 cp -a "$DST"/en_US/utils.so*        "$DST/he/" 2>/dev/null
 cp -a "$DST"/en_US/pkgconfig        "$DST/he/" 2>/dev/null
-cp -f "$DATA"/he-600x800.keymap.gz "$DST/he/he-600x800.keymap.gz"
-cp -f "$DATA"/he-800x600.keymap.gz "$DST/he/he-800x600.keymap.gz"
+# copy only the he keymaps whose resolution matches THIS device's en_US keymaps
+copied=0
+for f in "$DST"/en_US/en_US-*.keymap.gz; do
+    [ -f "$f" ] || continue
+    r=$(echo "$f" | sed 's/.*en_US-\(.*\)\.keymap\.gz/\1/')
+    if [ -f "$DATA/he-$r.keymap.gz" ]; then
+        cp -f "$DATA/he-$r.keymap.gz" "$DST/he/he-$r.keymap.gz"; copied=1
+        stamp "keymap he-$r matched device"
+    fi
+done
+if [ "$copied" = 0 ]; then
+    say 10 "WARN: no keymap matches this screen res"
+    stamp "WARN: no res match; copying all bundled keymaps"
+    cp -f "$DATA"/he-*.keymap.gz "$DST/he/"
+fi
 stamp "built $DST/he"
 
 # 4. remove stock Arabic from the overlay (cosmetic: he shows as "Arabic", avoid dupes)

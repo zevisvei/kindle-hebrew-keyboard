@@ -25,7 +25,7 @@ current_lang() { sed -n 's/.*"current": *"\([^"]*\)".*/\1/p' "$CONF" 2>/dev/null
 
 case "$1" in
     enable)
-        if [ ! -f "$KBROOT/he/he-600x800.keymap.gz" ]; then
+        if ! ls "$KBROOT"/he/*.keymap.gz >/dev/null 2>&1; then
             eips -c; eips 1 10 "  ERROR: $KBROOT/he missing"
             stamp "enable FAILED: kbroot/he missing"; exit 1
         fi

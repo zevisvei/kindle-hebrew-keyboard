@@ -6,8 +6,9 @@ notes, collections, anywhere the system keyboard appears. No KOReader required.
 Installs as a [KUAL](https://www.mobileread.com/forums/showthread.php?t=203326)
 extension. **No SSH, no PC tools** — copy one folder, tap *Install*.
 
-> Built and verified on **Kindle Basic 10g (J9G29R), firmware 5.18.1**, jailbroken
-> with AdBreak. Standard Israeli **SI‑1452** layout. Typing‑only (no word prediction).
+> Built and verified on **Kindle Basic 10g (J9G29R), FW 5.18.1** and **Paperwhite
+> 11th gen (2021), FW 5.16.20**, jailbroken with AdBreak. Standard Israeli
+> **SI‑1452** layout. Typing‑only (no word prediction).
 
 ---
 
@@ -23,8 +24,10 @@ extension. **No SSH, no PC tools** — copy one folder, tap *Install*.
 ## Requirements
 
 - A **jailbroken** Kindle with **KUAL** installed.
-- A **600×800 / 800×600** keyboard device (basic Kindles / Paperwhite‑class).
-  Higher‑resolution models need regenerated keymaps — see [Limitations](#limitations).
+- A jailbroken Kindle whose keyboard resolution is one of the bundled keymaps:
+  **600×800 / 800×600** (Basic 10g class) or **1072×1448 / 1448×1072**
+  (Paperwhite 11th gen). Install auto‑picks the keymap matching the device.
+  Other resolutions need regenerated keymaps — see [Limitations](#limitations).
 
 ## Install (no SSH)
 
@@ -80,7 +83,8 @@ The `kb` daemon then auto‑lists `he` in `keyboard.conf` and loads the Hebrew k
   `kb` daemon has no internal name for `he` and falls back to "Arabic"; fixing the
   label would require patching the `kb` binary.
 - **No word prediction** (typing only — no `.ldb` dictionary shipped).
-- **600×800 / 800×600 only.** Other resolutions need regenerated keymaps.
+- **Bundled keymaps: 600×800 / 800×600 and 1072×1448 / 1448×1072 only.** Other
+  resolutions need regenerated keymaps (see `kbbuild/` in the parent project).
 - OTA firmware updates may replace `keyboard.sqsh`; re‑run *Install / Repair* after.
 
 ## Safety / rollback
@@ -103,8 +107,10 @@ hebrew-keyboard/
 │  ├─ uninstall.sh     remove everything, restore stock
 │  └─ hebkb.sh         enable / disable / status
 └─ data/
-   ├─ he-600x800.keymap.gz
+   ├─ he-600x800.keymap.gz    Basic 10g class
    ├─ he-800x600.keymap.gz
+   ├─ he-1072x1448.keymap.gz  Paperwhite 11th gen
+   ├─ he-1448x1072.keymap.gz
    └─ hebkb.conf       upstart boot job
 ```
 
