@@ -5,8 +5,14 @@ CONF=/var/local/system/keyboard.conf
 PREF=/var/local/java/prefs/Keyboard.preferences
 LOG="$EXT/hebkb.log"
 stamp() { echo "$(date '+%Y-%m-%d %H:%M:%S') uninstall: $*" >> "$LOG"; }
+# Bottom-of-screen messages (no full-screen clear), like other KUAL extensions.
+_yres() { eips -i 2>/dev/null | sed -n 's/.*[^_]yres:[^0-9]*\([0-9][0-9]*\).*/\1/p' | head -1; }
+YR=$(_yres); [ -n "$YR" ] || YR=800
+BR=$(( YR / 24 - 4 )); [ "$BR" -gt 0 ] || BR=24
+LN=0
+say() { eips 1 $((BR+LN)) "$(printf '%-34.34s' "  $1")"; LN=$((LN+1)); }
 
-eips -c; eips 1 8 "  Removing Hebrew keyboard..."
+say "Removing Hebrew keyboard..."
 
 mount -o remount,rw / 2>/dev/null
 # back to English first
@@ -20,5 +26,5 @@ rm -rf /var/local/kbroot
 restart kb >/dev/null 2>&1 || { stop kb >/dev/null 2>&1; start kb >/dev/null 2>&1; }
 stamp "removed overlay, job, kbroot; restored en_US"
 
-eips -c; eips 1 10 "  Hebrew keyboard removed (stock restored)."
-eips 1 12 "  A reboot fully clears the overlay mount."
+say "Removed. Stock restored."
+say "Reboot clears the mount fully."

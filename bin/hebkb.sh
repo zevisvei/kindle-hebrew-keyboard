@@ -16,6 +16,17 @@ PREF=/var/local/java/prefs/Keyboard.preferences
 LOG=/mnt/us/extensions/hebrew-keyboard/hebkb.log
 
 stamp() { echo "$(date '+%Y-%m-%d %H:%M:%S') $*" >> "$LOG"; }
+
+# Print messages at the BOTTOM of the screen (like other KUAL extensions),
+# without clearing the whole screen. Rows are ~24 px tall; derive count from yres.
+_yres() { eips -i 2>/dev/null | sed -n 's/.*[^_]yres:[^0-9]*\([0-9][0-9]*\).*/\1/p' | head -1; }
+YR=$(_yres); [ -n "$YR" ] || YR=800
+BR=$(( YR / 24 - 4 )); [ "$BR" -gt 0 ] || BR=24
+LN=0
+# pad/truncate to a fixed width so the line clears itself and never overflows
+# the screen (eips errors past the right edge). ~34 cols fits 600 px screens.
+say() { eips 1 $((BR+LN)) "$(printf '%-34.34s' "  $1")"; LN=$((LN+1)); }
+
 restart_kb() { restart kb >/dev/null 2>&1 || { stop kb >/dev/null 2>&1; start kb >/dev/null 2>&1; }; }
 set_lang() {   # $1 = ACTIVE lang id. selected = BOTH keyboards (he:en_US) so the
                # on-screen globe key can switch he<->en; current = the active one.
@@ -27,31 +38,27 @@ current_lang() { sed -n 's/.*"current": *"\([^"]*\)".*/\1/p' "$CONF" 2>/dev/null
 case "$1" in
     enable)
         if ! ls "$KBROOT"/he/*.keymap.gz >/dev/null 2>&1; then
-            eips -c; eips 1 10 "  ERROR: $KBROOT/he missing"
+            say "ERROR: he keymap missing"
             stamp "enable FAILED: kbroot/he missing"; exit 1
         fi
         [ -d "$TARGET/he" ] || mount --bind "$KBROOT" "$TARGET"
         set_lang he
         restart_kb
-        eips -c
-        eips 1 10 "  Hebrew keyboard ENABLED"
-        eips 1 12 "  Open search to type Hebrew"
+        say "Hebrew ENABLED. Globe=he/en"
         stamp "enabled"
         ;;
     disable)
         set_lang en_US
         restart_kb
-        eips -c
-        eips 1 10 "  Switched to English"
+        say "English active. Globe=he/en"
         stamp "disabled (current=en_US)"
         ;;
     status)
-        eips -c
         cur=$(current_lang)
         if [ "$cur" = "he" ]; then
-            eips 1 10 "  Active keyboard: Hebrew"
+            say "Active: Hebrew"
         else
-            eips 1 10 "  Active keyboard: $cur"
+            say "Active: $cur"
         fi
         ;;
     *)
