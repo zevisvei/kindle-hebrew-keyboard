@@ -137,6 +137,8 @@ hebrew-keyboard/
    ├─ he-800x600.keymap.gz
    ├─ he-1072x1448.keymap.gz  fallback — Paperwhite 11th gen
    ├─ he-1448x1072.keymap.gz
+   ├─ he-1272x1696.keymap.gz  fallback — 1272x1696 devices (Colorsoft / PW 12th gen)
+   ├─ he-1696x1272.keymap.gz
    └─ hebkb.conf       upstart boot job
 ```
 

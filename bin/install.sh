@@ -101,7 +101,7 @@ cp -f "$DATA/hebkb.conf" /etc/upstart/hebkb.conf 2>/dev/null && stamp "installed
 # 6. mount now + enable Hebrew. selected = he:en_US so the on-screen globe key
 #    switches he<->en; current = he (Hebrew active on open).
 [ -d "$SRC/he" ] || mount --bind "$DST" "$SRC"
-sed -i 's/"current": *"[^"]*"/"current": "he"/; s/"selected": *"[^"]*"/"selected": "he:en_US"/' "$CONF" 2>/dev/null
+sed -i 's/"current":[[:space:]]*"[^"]*"/"current": "he"/; s/"selected":[[:space:]]*"[^"]*"/"selected": "he:en_US"/' "$CONF" 2>/dev/null
 if grep -q '^keyboard=' "$PREF" 2>/dev/null; then
     sed -i 's/^keyboard=.*/keyboard=he/' "$PREF"
 else
